@@ -1,4 +1,4 @@
-# youth-mental-wellness
+# backend
 
 To install dependencies:
 
