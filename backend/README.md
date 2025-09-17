@@ -1,4 +1,4 @@
-# mental-wellness
+# youth-mental-wellness
 
 To install dependencies:
 

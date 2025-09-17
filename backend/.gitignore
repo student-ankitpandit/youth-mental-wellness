@@ -34,3 +34,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 /src/generated/prisma
+
+# Keep environment variables out of version control
+.env
+
+/lib/generated/prisma
+

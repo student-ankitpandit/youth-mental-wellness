@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -20,8 +20,8 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  messages chat[]
-  chatSession chatSession[]
+  messages message[]
+  chatSessions chatSession[]
 }
 
 model dashboard {
@@ -50,11 +50,22 @@ model chat {
   updatedAt DateTime @updatedAt
   chatSessionId String
   chatSession chatSession @relation(fields: [chatSessionId], references: [id])
+  chats message[]
 }
 
 model chatSession {
   id String @id @default(cuid())
   messages chat[]
+  userId String
+  user User @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model message {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  chats String
+  message chat @relation(fields: [chats], references: [id])
 }
