@@ -1,26 +1,37 @@
 import { Router } from 'express';
-import prisma from '../lib/prisma';
-import z, { success } from 'zod';
+import z  from 'zod';
 import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken"
+import { prisma } from '../lib/prisma';
 
 const router = Router();
 
-router.post("/signup", async (req:any, res:any) => {
+router.post("/signup", async (req, res) => {
     try {
-        const resSchema =  z.object({
+        const signupSchema =  z.object({
             username: z.string().min(3, "Username must be at least 3 characters"),
-            email: z.string().regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Invalid email address"),
+            email: z.email(),
             password: z.string().min(6, "Password must be at least 6 characters")
         })
 
-        const result = resSchema.safeParse(req.body)
+        const result = signupSchema.safeParse(req.body)
         if(!result.success) {
+            console.log("Validation: ", result.error.issues)
             return res.status(400).json({success: false, errors: result.error.issues})
         }
 
         const {username, email, password} = result.data;
-        console.log(result.data)
+        console.log(result.data);
+
+        const existingUser = await prisma.user.findUnique({
+            where: {email}
+        })
+
+        if(existingUser) {
+            return res
+            .status(400)
+            .json({success: false, message: "User with this email already exist"})
+        }
 
         const hashPassword = await bcrypt.hash(password, 10)
 
@@ -44,22 +55,23 @@ router.post("/signup", async (req:any, res:any) => {
     }
 })
 
-router.post("/login", async (req:any, res:any) => {
+router.post("/login", async (req, res) => {
     try {
-        const resSchema = z.object({
+        const loginSchema = z.object({
             email: z.email("Invalid email address"),
             password: z.string().min(6, "Password must be at least 6 characters")
         })
 
-        const result = resSchema.safeParse(req.body)
+        const result = loginSchema.safeParse(req.body)
         if(!result.success) {
             return res.status(400).json({success: false, errors: result.error.issues})
         }
 
         const {email, password} = result.data
+        console.log(result.data);
 
         //find the user in db
-        const user = await prisma.user.findUnique({ where: email })
+        const user = await prisma.user.findUnique({ where: {email} })
 
         if(!user) {
             return res
@@ -71,16 +83,21 @@ router.post("/login", async (req:any, res:any) => {
         
         if(!validPassword) {
             return res
-            .staus(401)
+            .status(401)
             .json({success: false, message: "Invalid credentials"})
         }
 
         //signing jwt token
         jwt.sign({userId: user.id}, process.env.JWT_SECRET!)
+
+        return res
+        .status(200)
+        .json({success: true, message: "User logged in successfully"})
         
     } catch (e) {
         console.log("Error: ", e)
-        return res.staus(500).json({success: false, message: "Something went wrong while signing you in"})
+        return res.status(500).json({success: false, message: "Something went wrong while signing you in"})
     }
 })
 
+export default router
