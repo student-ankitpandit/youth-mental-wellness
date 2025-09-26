@@ -4,7 +4,7 @@ import prisma from '../lib/prisma';
 
 const router = Router()
 
-router.get("/moodStatus/:userId", async (req, res) => {
+router.get("/getMoodStatus/:userId", async (req, res) => {
     try {
         const {userId} = req.params
 
@@ -15,7 +15,7 @@ router.get("/moodStatus/:userId", async (req, res) => {
             orderBy: {createdAt: 'desc'}
         })
 
-        return res.status(200).json({success: true, messgae: "Mood statsuses fetched successfully", moods})
+        return res.status(200).json({success: true, messgae: "Mood statuses fetched successfully", moods})
     } catch (e) {
         console.log("Error: ", e)
         return res.status(500).json({success: false, message: "Could not fetch mood statuses", error: e instanceof Error ? e.message : e})
